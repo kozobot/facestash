@@ -1,5 +1,7 @@
-flask
-ariadne
+flask~=2.1.1
+ariadne~=0.15.0
 flask-sqlalchemy
 flask-cors
 face_recognition
+requests~=2.26.0
+gql

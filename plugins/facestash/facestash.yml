@@ -1,0 +1,12 @@
+name: FaceStash
+description: Facial recognition of performers and scenes
+version: 0.1
+exec:
+  - python
+  - "{pluginDir}/facestash.py"
+interface: raw
+tasks:
+  - name: Generate Performers
+    description: Sends all the performers over to FaceStash for recognition.  This is meant for an initial load.  Additions and updates to performers will be processed automatically.
+    defaultArgs:
+      mode: gen

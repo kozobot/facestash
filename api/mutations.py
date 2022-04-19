@@ -27,12 +27,17 @@ def create_performer_resolver(obj, info, stash_id):
 
 
 @convert_kwargs_to_snake_case
-def update_performer_resolver(obj, info, id, title, description):
+def update_performer_resolver(obj, info, stash_id, image_path):
     try:
-        performer = Performer.query.get(id)
-        # if performer:
-        #     performer.title = title
-        #     performer.description = description
+        today = date.today()
+        performer = Performer.query.get(stash_id)
+        if performer:
+            performer.updated_at = today
+        else:
+            performer = Performer(
+                stash_id=stash_id, created_at=today, updated_at=today
+            )
+        # TODO - run the facial stuff
         db.session.add(performer)
         db.session.commit()
         payload = {
