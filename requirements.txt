@@ -1,0 +1,5 @@
+flask
+ariadne
+flask-sqlalchemy
+flask-cors
+face_recognition

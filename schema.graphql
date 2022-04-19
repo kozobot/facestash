@@ -1,0 +1,33 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Performer {
+    id: ID!
+    title: String!
+    created_at: String!
+    updated_at: String!
+}
+
+type PerformerResult {
+    success: Boolean!
+    errors: [String]
+    performer: Performer
+}
+
+type PerformersResult {
+    success: Boolean!
+    errors: [String]
+    performer: [Performer]
+}
+
+type Query {
+    listPerformers: PerformersResult!
+    getPerformer(id: ID!): PerformerResult!
+}
+
+type Mutation {
+    createPerformer(stash_id: String!): PerformerResult!
+    updatePerformer(stash_id: String!): PerformerResult!
+}
