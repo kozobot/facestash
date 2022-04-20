@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 from ariadne import convert_kwargs_to_snake_case
 from api import db
 from api.models import Performer
@@ -7,9 +7,9 @@ from api.models import Performer
 @convert_kwargs_to_snake_case
 def create_performer_resolver(obj, info, stash_id):
     try:
-        today = date.today()
+        now = datetime.datetime.now()
         performer = Performer(
-            stash_id=stash_id, created_at=today, updated_at=today
+            stash_id=stash_id, created_at=now, updated_at=now
         )
         db.session.add(performer)
         db.session.commit()
@@ -29,13 +29,13 @@ def create_performer_resolver(obj, info, stash_id):
 @convert_kwargs_to_snake_case
 def update_performer_resolver(obj, info, stash_id, image_path):
     try:
-        today = date.today()
+        now = datetime.datetime.now()
         performer = Performer.query.get(stash_id)
         if performer:
-            performer.updated_at = today
+            performer.updated_at = now
         else:
             performer = Performer(
-                stash_id=stash_id, created_at=today, updated_at=today
+                stash_id=stash_id, created_at=now, updated_at=now
             )
         # TODO - run the facial stuff
         db.session.add(performer)

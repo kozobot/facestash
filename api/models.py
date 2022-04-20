@@ -1,9 +1,17 @@
+import datetime
+
 from facestash import db
 
+
+# This is the reference to a Performer in Stash
 class Performer(db.Model):
+    # use the stash id as the primary key
     stash_id = db.Column(db.String, primary_key=True)
-    created_at = db.Column(db.Date)
-    updated_at = db.Column(db.Date)
+    # when this was created
+    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    # when this was lasted updated.  Important for determining when to refresh data
+    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+
     def to_dict(self):
         return {
             "id": self.id,
