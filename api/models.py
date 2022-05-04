@@ -14,8 +14,22 @@ class Performer(db.Model):
 
     def to_dict(self):
         return {
-            "id": self.id,
             "stash_id": self.stash_id,
+            "created_at": str(self.created_at.strftime('%d-%m-%Y')),
+            "updated_at": str(self.created_at.strftime('%d-%m-%Y'))
+        }
+
+
+class Face(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # when this was created
+    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    # when this was lasted updated.  Important for determining when to refresh data
+    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
             "created_at": str(self.created_at.strftime('%d-%m-%Y')),
             "updated_at": str(self.created_at.strftime('%d-%m-%Y'))
         }

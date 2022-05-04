@@ -1,15 +1,16 @@
 from .models import Performer
 from ariadne import convert_kwargs_to_snake_case
+import logging
 
 
 def listPerformers_resolver(obj, info):
     try:
-        print("here")
+        logging.debug("listPerformers_resolver")
         performers = [performer.to_dict() for performer in Performer.query.all()]
-        print(performers)
+        logging.info(f"Found {len(performers)} performers")
         payload = {
             "success": True,
-            "performers": performers
+            "performer": performers
         }
     except Exception as error:
         payload = {
@@ -20,9 +21,10 @@ def listPerformers_resolver(obj, info):
 
 
 @convert_kwargs_to_snake_case
-def getPerformer_resolver(obj, info, id):
+def getPerformer_resolver(obj, info, stash_id):
     try:
-        performer = Performer.query.get(id)
+        performer = Performer.query.get(stash_id)
+        logging.debug(f'performer: {performer.to_dict()}')
         payload = {
             "success": True,
             "performer": performer.to_dict()

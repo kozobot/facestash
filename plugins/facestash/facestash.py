@@ -3,7 +3,10 @@ import sys
 import copy
 import re
 from gql import gql, Client
+from graphql.error import GraphQLError
 from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.exceptions import TransportError, TransportQueryError
+from aiohttp import connector
 
 
 def __prefix(level_char):
@@ -55,8 +58,10 @@ def main(stash_conn):
 
 
 def generate_performers():
+    # go get all the performers from stash
+    log(b't', "Querying All Performers")
+    result = {'allPerformers': []}
     try:
-        log(b't', "Querying All Performers")
         queryAllPerformers = gql("""
             query Performer {
               allPerformers {
@@ -66,10 +71,16 @@ def generate_performers():
             }
         """)
         result = stash_client.execute(queryAllPerformers)
+    except GraphQLError as err:
+        log(b'e', f'Could not load performers {err}')
+    except (ConnectionRefusedError, TransportError, connector.ClientConnectorError) as err:
+        log(b'e', f'Could not connect to Stash: {err}')
 
-        # loop over the performers and call the face client
-        for performer in result['allPerformers']:
-            log(b'i', f'Processing Performer ("{performer["id"]}")')
+    # loop over the performers and call the face client
+    #  if there was a face stash error, then the list would be empty and this loop skipped
+    for performer in result['allPerformers']:
+        log(b't', f'Processing Performer ("{performer["id"]}")')
+        try:
             mutationUpdatePerformer = gql("""
                 mutation UpdatePerformer($stashId: String!, $imagePath: String!) {
                   updatePerformer(stash_id: $stashId, image_path: $imagePath) {
@@ -83,8 +94,10 @@ def generate_performers():
                                 variable_values={
                                     "stashId": performer["id"], "imagePath": performer["image_path"]
                                 })
-    except gql.GraphQLException as err:
-        log(b'e', f'Could not load performers {err}')
+        except (GraphQLError, TransportError, TransportQueryError) as err:
+            log(b'e', f'Could not process performer in FaceStash {performer["id"]} - {err}')
+        except (ConnectionRefusedError, connector.ClientConnectorError, ) as err:
+            log(b'e', f'Could not connect to FaceStash: {err}')
 
 
 if __name__ == '__main__':
