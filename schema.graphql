@@ -5,6 +5,14 @@ schema {
 
 type Performer {
     stash_id: ID!
+    face_id: ID
+    created_at: String!
+    updated_at: String!
+}
+
+type Face {
+    id: ID!
+    encoding: String!
     created_at: String!
     updated_at: String!
 }

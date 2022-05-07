@@ -1,11 +1,16 @@
 import datetime
 import logging
-
-import face_recognition
+import requests
+import tempfile
+import traceback
 
 from ariadne import convert_kwargs_to_snake_case
 from api import db
-from api.models import Performer
+from api.models import Performer, Face
+
+import face_recognition
+from PIL import UnidentifiedImageError
+import pickle
 
 
 @convert_kwargs_to_snake_case
@@ -38,18 +43,38 @@ def update_performer_resolver(obj, info, stash_id, image_path):
         if performer:
             performer.updated_at = now
         else:
+            # TODO - should we call create performer instead?
             performer = Performer(
                 stash_id=stash_id, created_at=now, updated_at=now
             )
 
         # Load the image and get any faces
         logging.info("Starting facial recognition on " + image_path)
+
+        tmp_img = tempfile.NamedTemporaryFile(delete=False)
         try:
-            performer_image = face_recognition.load_image_file(image_path)
+            # Fetch the image and save to a temp file
+            tmp_img.write(requests.get(
+                image_path,
+                # TODO - load the API key from config
+                headers={'ApiKey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ0YWNvIiwiaWF0IjoxNjUwMzc4MzA3LCJzdWIiOiJBUElLZXkifQ.TOFuBYbUAeHes4SRIiKiF4P6BQWhg0VeXVcwyo3X7F0"}
+            ).content)
+            logging.warning(f"Wrote Image to temp file: {tmp_img.name}")
+
+            # find faces in the image
+            performer_image = face_recognition.load_image_file(tmp_img.name)
             performer_face_encoding = face_recognition.face_encodings(performer_image)[0]
-            logging.debug("Found facial encoding: " + performer_face_encoding)
-        except FileNotFoundError:
-            logging.warn(f"Could not find image for facial recognition: {image_path}")
+
+            # dump to pickle for storage
+            performer.face = Face()
+            performer.face.encoding = pickle.dumps(performer_face_encoding)
+
+            logging.warning("Saved pickle")
+            # logging.debug("Found facial encoding: " + performer_face_encoding)
+        except (FileNotFoundError, UnidentifiedImageError) as err:
+            logging.warning(f"Could not load image for facial recognition: {image_path} \n{err}")
+        finally:
+            tmp_img.close()
 
         db.session.add(performer)
         db.session.commit()
@@ -57,10 +82,11 @@ def update_performer_resolver(obj, info, stash_id, image_path):
             "success": True,
             "performer": performer.to_dict()
         }
-
-    except AttributeError:  # todo not found
+    except AttributeError as err:
+        traceback.print_exc()
         payload = {
             "success": False,
-            "errors": [f"item matching id {stash_id} not found"]
+            "errors": [f"item matching id {stash_id} not found: {err}"]
         }
+
     return payload

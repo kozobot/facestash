@@ -1,4 +1,4 @@
-from .models import Performer
+from .models import Performer, Face
 from ariadne import convert_kwargs_to_snake_case
 import logging
 
