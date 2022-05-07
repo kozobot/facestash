@@ -85,7 +85,8 @@ def generate_performers():
                 mutation UpdatePerformer($stashId: String!, $imagePath: String!) {
                   updatePerformer(stash_id: $stashId, image_path: $imagePath) {
                     performer {
-                      id
+                      stash_id
+                      face_id
                     }
                   }
                 }

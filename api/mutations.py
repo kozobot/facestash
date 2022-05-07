@@ -51,7 +51,7 @@ def update_performer_resolver(obj, info, stash_id, image_path):
         # Load the image and get any faces
         logging.info("Starting facial recognition on " + image_path)
 
-        tmp_img = tempfile.NamedTemporaryFile(delete=False)
+        tmp_img = tempfile.NamedTemporaryFile(delete=True)
         try:
             # Fetch the image and save to a temp file
             tmp_img.write(requests.get(
@@ -59,18 +59,20 @@ def update_performer_resolver(obj, info, stash_id, image_path):
                 # TODO - load the API key from config
                 headers={'ApiKey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ0YWNvIiwiaWF0IjoxNjUwMzc4MzA3LCJzdWIiOiJBUElLZXkifQ.TOFuBYbUAeHes4SRIiKiF4P6BQWhg0VeXVcwyo3X7F0"}
             ).content)
-            logging.warning(f"Wrote Image to temp file: {tmp_img.name}")
+            logging.debug(f"Wrote Image to temp file: {tmp_img.name}")
 
             # find faces in the image
             performer_image = face_recognition.load_image_file(tmp_img.name)
-            performer_face_encoding = face_recognition.face_encodings(performer_image)[0]
+            performer_face_encodings = face_recognition.face_encodings(performer_image)
 
             # dump to pickle for storage
-            performer.face = Face()
-            performer.face.encoding = pickle.dumps(performer_face_encoding)
+            if len(performer_face_encodings) > 0:
+                performer.face = Face()
+                performer.face.encoding = pickle.dumps(performer_face_encodings[0])
+            else:
+                logging.warning(f"Found unexpected number of encodings({len(performer_face_encodings)}) for {stash_id}")
 
-            logging.warning("Saved pickle")
-            # logging.debug("Found facial encoding: " + performer_face_encoding)
+            logging.debug(f"Saved pickle for {stash_id}")
         except (FileNotFoundError, UnidentifiedImageError) as err:
             logging.warning(f"Could not load image for facial recognition: {image_path} \n{err}")
         finally:
