@@ -4,8 +4,15 @@ schema {
 }
 
 type Performer {
+    stash_id: ID!
+    face_id: ID
+    created_at: String!
+    updated_at: String!
+}
+
+type Face {
     id: ID!
-    title: String!
+    encoding: String!
     created_at: String!
     updated_at: String!
 }
@@ -24,10 +31,10 @@ type PerformersResult {
 
 type Query {
     listPerformers: PerformersResult!
-    getPerformer(id: ID!): PerformerResult!
+    getPerformer(stash_id: ID!): PerformerResult!
 }
 
 type Mutation {
     createPerformer(stash_id: String!): PerformerResult!
-    updatePerformer(stash_id: String!): PerformerResult!
+    updatePerformer(stash_id: String!, image_path: String!): PerformerResult!
 }
