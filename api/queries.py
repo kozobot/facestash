@@ -1,3 +1,4 @@
+from . import app
 from .models import Performer, Face
 from ariadne import convert_kwargs_to_snake_case
 import logging
@@ -5,9 +6,9 @@ import logging
 
 def listPerformers_resolver(obj, info):
     try:
-        logging.debug("listPerformers_resolver")
+        app.logger.debug("listPerformers_resolver")
         performers = [performer.to_dict() for performer in Performer.query.all()]
-        logging.info(f"Found {len(performers)} performers")
+        app.logger.info(f"Found {len(performers)} performers")
         payload = {
             "success": True,
             "performer": performers
@@ -24,7 +25,7 @@ def listPerformers_resolver(obj, info):
 def getPerformer_resolver(obj, info, stash_id):
     try:
         performer = Performer.query.get(stash_id)
-        logging.debug(f'performer: {performer.to_dict()}')
+        app.logger.debug(f'performer: {performer.to_dict()}')
         payload = {
             "success": True,
             "performer": performer.to_dict()

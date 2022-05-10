@@ -52,14 +52,58 @@ def main(stash_conn):
     face_client = Client(transport=face_transport, fetch_schema_from_transport=True)
     log(b'i', f'Created Face Client ("{face_url}")')
 
-    generate_performers()
 
-    log(b'i', json.dumps({"output": "ok"}))
+def update_performer(performer):
+    log(b't', f'Processing Performer ("{performer["id"]}")')
+    try:
+        mutationUpdatePerformer = gql("""
+                mutation UpdatePerformer($stashId: String!, $imagePath: String!, $updatedAt: String!) {
+                  updatePerformer(stash_id: $stashId, image_path: $imagePath, updated_at: $updatedAt) {
+                    performer {
+                      stash_id
+                      face_id
+                    }
+                  }
+                }
+            """)
+        face_client.execute(mutationUpdatePerformer,
+                            variable_values={
+                                "stashId": performer["id"],
+                                "imagePath": performer["image_path"],
+                                "updatedAt": performer["updated_at"]
+                            })
+    except (GraphQLError, TransportError, TransportQueryError) as err:
+        log(b'e', f'Could not process performer in FaceStash {performer["id"]} - {err}')
+    except (ConnectionRefusedError, connector.ClientConnectorError, ) as err:
+        log(b'e', f'Could not connect to FaceStash: {err}')
 
 
-def generate_performers():
+def query_stash_performer(performerId):
+    # go get a single performer from stash
+    log(b't', f"Querying Stash Performer {performerId}")
+    result = {'findPerformer': {}}
+    try:
+        findPerfomer = gql("""
+            query findPerformer($id: ID!) {
+              findPerformer(id: $id) {
+                id
+                image_path
+                updated_at
+              }
+            }
+        """)
+        result = stash_client.execute(findPerfomer,
+                                      variable_values={"id": performerId})
+    except GraphQLError as err:
+        log(b'e', f'Could not load performers {err}')
+    except (ConnectionRefusedError, TransportError, connector.ClientConnectorError) as err:
+        log(b'e', f'Could not connect to Stash: {err}')
+
+    return result['findPerformer']
+
+def query_all_stash_performers():
     # go get all the performers from stash
-    log(b't', "Querying All Performers")
+    log(b't', "Querying All Stash Performers")
     result = {'allPerformers': []}
     try:
         queryAllPerformers = gql("""
@@ -67,6 +111,7 @@ def generate_performers():
               allPerformers {
                 id
                 image_path
+                updated_at
               }
             }
         """)
@@ -76,31 +121,27 @@ def generate_performers():
     except (ConnectionRefusedError, TransportError, connector.ClientConnectorError) as err:
         log(b'e', f'Could not connect to Stash: {err}')
 
-    # loop over the performers and call the face client
-    #  if there was a face stash error, then the list would be empty and this loop skipped
-    for performer in result['allPerformers']:
-        log(b't', f'Processing Performer ("{performer["id"]}")')
-        try:
-            mutationUpdatePerformer = gql("""
-                mutation UpdatePerformer($stashId: String!, $imagePath: String!) {
-                  updatePerformer(stash_id: $stashId, image_path: $imagePath) {
-                    performer {
-                      stash_id
-                      face_id
-                    }
-                  }
-                }
-            """)
-            face_client.execute(mutationUpdatePerformer,
-                                variable_values={
-                                    "stashId": performer["id"], "imagePath": performer["image_path"]
-                                })
-        except (GraphQLError, TransportError, TransportQueryError) as err:
-            log(b'e', f'Could not process performer in FaceStash {performer["id"]} - {err}')
-        except (ConnectionRefusedError, connector.ClientConnectorError, ) as err:
-            log(b'e', f'Could not connect to FaceStash: {err}')
+    return result['allPerformers']
 
 
 if __name__ == '__main__':
     json_input = json.loads(sys.stdin.read())
+    log(b't', f'Starting plugin: {json.dumps(json_input)}')
+
+    # Init our graphql connections
     main(json_input["server_connection"])
+
+    mode = json_input['args']['mode']
+
+    if mode == "generate_performers":
+        # fetch all the perfomers from stash
+        performers = query_all_stash_performers()
+        # loop over the performers and call the face client
+        for performer in performers:
+            update_performer(performer)
+    elif mode == "update_performer":
+        performer = query_stash_performer(json_input['args']['hookContext']['id'])
+        update_performer(performer)
+
+    # Log that we are done
+    log(b'i', json.dumps({"output": "ok"}))

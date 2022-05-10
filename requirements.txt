@@ -8,3 +8,4 @@ requests~=2.26.0
 gql~=3.2.0
 sqlalchemy-migrate
 Pillow~=9.1.0
+pytz
