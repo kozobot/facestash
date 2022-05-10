@@ -13,9 +13,9 @@ class Performer(db.Model):
     # one-to-one to Face
     face = db.relationship('Face', uselist=False)
     # when this was created
-    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
     # when this was lasted updated.  Important for determining when to refresh data
-    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
 
     def to_dict(self):
         return {
@@ -33,9 +33,9 @@ class Face(db.Model):
     # store the face encoding as a Pickle BLOB
     encoding = db.Column(db.PickleType, nullable=False)
     # when this was created
-    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
     # when this was lasted updated.  Important for determining when to refresh data
-    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.now())
+    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
 
     def to_dict(self):
         return {

@@ -5,6 +5,7 @@ from ariadne.constants import PLAYGROUND_HTML
 from flask import request, jsonify
 from api.queries import listPerformers_resolver, getPerformer_resolver
 from api.mutations import create_performer_resolver, update_performer_resolver
+import os
 
 # Configure the resolvers
 query = ObjectType("Query")
@@ -38,3 +39,10 @@ def graphql_server():
     )
     status_code = 200 if success else 400
     return jsonify(result), status_code
+
+
+@app.before_first_request
+def before_first_request():
+    logger_level = os.environ.get("LOGLEVEL", "INFO")
+    app.logger.warning(f"Setting logger level to {logger_level}")
+    app.logger.setLevel(logger_level)

@@ -36,5 +36,5 @@ type Query {
 
 type Mutation {
     createPerformer(stash_id: String!): PerformerResult!
-    updatePerformer(stash_id: String!, image_path: String!): PerformerResult!
+    updatePerformer(stash_id: String!, image_path: String!, updated_at: String!): PerformerResult!
 }
