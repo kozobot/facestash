@@ -4,6 +4,7 @@ SQLAlchemy~=1.4.36
 flask-sqlalchemy
 flask-cors
 face_recognition
+flask_restful
 requests~=2.26.0
 gql~=3.2.0
 sqlalchemy-migrate

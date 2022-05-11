@@ -108,3 +108,23 @@ def update_performer_resolver(obj, info, stash_id, image_path, updated_at):
 
     app.logger.debug(f"Saved Performer: {payload}")
     return payload
+
+
+@convert_kwargs_to_snake_case
+def create_scene_resolver(obj, info):
+    app.logger.debug("create_scene_resolver")
+
+
+@convert_kwargs_to_snake_case
+def update_scene_resolver(obj, info, oshash):
+    app.logger.debug(f"update_scene_resolver: {oshash}")
+
+    # find if we have a scene to update
+
+    # go grab the streaming url from Stash
+
+    # process the streaming url
+
+    # store any faces
+
+
