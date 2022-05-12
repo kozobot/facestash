@@ -45,12 +45,16 @@ def update_performer_resolver(obj, info, stash_id, image_path, updated_at):
             create_performer_resolver(obj, info, stash_id)
             face_performer = Performer.query.get(stash_id)
 
-        # check if we need to bother updating the performer
+        # Check if we need to bother updating the performer.  We will reprocess the face if the stash performer was
+        #  updated more recently, or if there is no prior face (like if it was just created)
         # The face_performer was loaded from the DB, which we assume is in UTC.  Gross.  We just set the timezone
         # to UTC so we can run the compare.
         # The timezone provided by Stash is in ISO format with a non UTC timestamp.  Convert that timestamp to UTC.
         # If the stash performer was updated more recently than the face perfomer, then go ahead and recompute the face.
-        if datetime.fromisoformat(updated_at).astimezone(pytz.utc) > face_performer.updated_at.replace(tzinfo=pytz.utc):
+        if (datetime.fromisoformat(updated_at).astimezone(pytz.utc) >=
+                face_performer.updated_at.replace(tzinfo=pytz.utc)
+                or
+                face_performer.face is None):
             # Load the image and get any faces
             app.logger.info("Starting facial recognition on " + image_path)
             tmp_img = tempfile.NamedTemporaryFile(delete=True)
@@ -127,4 +131,4 @@ def update_scene_resolver(obj, info, oshash):
 
     # store any faces
 
-
+    # Run the comparison between the available performer faces and the scene faces

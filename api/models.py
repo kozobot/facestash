@@ -44,3 +44,30 @@ class Face(db.Model):
             "created_at": str(self.created_at.strftime('%d-%m-%Y')),
             "updated_at": str(self.updated_at.strftime('%d-%m-%Y'))
         }
+
+
+# to hold the relationship between scenes and faces
+SceneFaceAssociation = db.Table('scene_face_association',
+                                db.Model.metadata,
+                                db.Column('oshash', db.ForeignKey('scene.oshash'), primary_key=True),
+                                db.Column('face_id', db.ForeignKey('face.id'), primary_key=True)
+                                )
+
+
+class Scene(db.Model):
+    __tablename__ = 'scene'
+    # use the oshash from stash as the primary key.  This should be a unique value.
+    oshash = db.Column(db.String, primary_key=True)
+    # many-to-one to Face
+    faces = db.relationship('Face', secondary=SceneFaceAssociation)
+    # when this was created
+    created_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
+    # when this was lasted updated.  Important for determining when to refresh data
+    updated_at = db.Column(db.DATETIME(timezone=True), nullable=False, default=datetime.datetime.utcnow())
+
+    def to_dict(self):
+        return {
+            "oshash": self.oshash,
+            "created_at": str(self.created_at.strftime('%d-%m-%Y')),
+            "updated_at": str(self.updated_at.strftime('%d-%m-%Y'))
+        }
