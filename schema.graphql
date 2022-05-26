@@ -17,6 +17,13 @@ type Face {
     updated_at: String!
 }
 
+type Scene {
+    oshash: String!
+    faces: [Face]
+    created_at: String!
+    updated_at: String!
+}
+
 type PerformerResult {
     success: Boolean!
     errors: [String]
@@ -29,12 +36,21 @@ type PerformersResult {
     performer: [Performer]
 }
 
+type SceneResult {
+    success: Boolean!
+    errors: [String]
+    scene: Scene
+}
+
 type Query {
     listPerformers: PerformersResult!
     getPerformer(stash_id: ID!): PerformerResult!
+    getPerformersForScene(oshash: String!): PerformersResult!
 }
 
 type Mutation {
     createPerformer(stash_id: String!): PerformerResult!
     updatePerformer(stash_id: String!, image_path: String!, updated_at: String!): PerformerResult!
+    createScene(oshash: String!): SceneResult!
+    updateScene(oshash: String!, stream: String!, updated_at: String!): SceneResult!
 }

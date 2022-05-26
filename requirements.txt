@@ -1,5 +1,6 @@
 flask~=2.1.1
 ariadne~=0.15.0
+opencv-python-headless
 SQLAlchemy~=1.4.36
 flask-sqlalchemy
 flask-cors

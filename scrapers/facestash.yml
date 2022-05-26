@@ -1,0 +1,8 @@
+name: FaceStash
+# this should run the face recognition and return a list of performers
+sceneByFragment:
+  action: script
+  script:
+    - python
+    - facestash.py
+    - sceneByFragment
