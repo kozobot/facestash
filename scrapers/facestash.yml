@@ -1,11 +1,8 @@
 name: FaceStash
 # this should run the face recognition and return a list of performers
 sceneByFragment:
-  action: scrapeJson
-  scraper: sceneQueryScraper
-  queryURL: http://172.17.0.1:5000/rest/scene/{oshash}
-jsonScrapers:
-  sceneQueryScraper:
-    scene:
-      Performers:
-        Name: data.performers.#.name
+  action: script
+  script:
+    - python
+    - facestash.py
+    - sceneByFragment

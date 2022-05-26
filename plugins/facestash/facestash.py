@@ -45,7 +45,7 @@ def main(stash_conn):
     stash_client = Client(transport=stash_transport, fetch_schema_from_transport=True)
     log(b'i', f'Created Stash Client ("{stash_url}")')
 
-    # init the gql client for stash
+    # init the gql client for facestash
     #   TODO - get this from config
     face_url = f'http://172.17.0.1:5000/graphql'
     face_transport = AIOHTTPTransport(url=face_url)

@@ -19,6 +19,7 @@ import cv2
 
 FRAME_SKIP = 15
 
+
 @convert_kwargs_to_snake_case
 def create_performer_resolver(obj, info, stash_id):
     try:
@@ -69,7 +70,8 @@ def update_performer_resolver(obj, info, stash_id, image_path, updated_at):
                 tmp_img.write(requests.get(
                     image_path,
                     # TODO - load the API key from config
-                    headers={'ApiKey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ0YWNvIiwiaWF0IjoxNjUwMzc4MzA3LCJzdWIiOiJBUElLZXkifQ.TOFuBYbUAeHes4SRIiKiF4P6BQWhg0VeXVcwyo3X7F0"}
+                    headers={
+                        'ApiKey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ0YWNvIiwiaWF0IjoxNjUwMzc4MzA3LCJzdWIiOiJBUElLZXkifQ.TOFuBYbUAeHes4SRIiKiF4P6BQWhg0VeXVcwyo3X7F0"}
                 ).content)
                 app.logger.debug(f"Wrote Image to temp file: {tmp_img.name}")
 
@@ -81,7 +83,8 @@ def update_performer_resolver(obj, info, stash_id, image_path, updated_at):
                 if len(performer_face_encodings) == 0:
                     # clear out the existing face if it exists
                     if face_performer.face:
-                        app.logger.info(f"Performer {face_performer.stash_id} has no face, clearing old face value {face_performer.face_id}")
+                        app.logger.info(
+                            f"Performer {face_performer.stash_id} has no face, clearing old face value {face_performer.face_id}")
                         face_performer.face_id = None
                         face_performer.face = None
                 elif len(performer_face_encodings) == 1:
@@ -89,7 +92,8 @@ def update_performer_resolver(obj, info, stash_id, image_path, updated_at):
                     face_performer.face.encoding = pickle.dumps(performer_face_encodings[0])
                 else:
                     # Too many faces found.  Not storing them at all.
-                    app.logger.warning(f"Found unexpected number of encodings({len(performer_face_encodings)}) for {stash_id}")
+                    app.logger.warning(
+                        f"Found unexpected number of encodings({len(performer_face_encodings)}) for {stash_id}")
 
                 app.logger.debug(f"Saved pickle for {stash_id}")
             except (FileNotFoundError, UnidentifiedImageError) as err:
@@ -147,14 +151,14 @@ def process_stream(stream):
     # Pull the faces out of the stream
     app.logger.debug(f"process_stream: loading stream {stream}")
     video_capture = cv2.VideoCapture(stream)
-    if (video_capture.isOpened() == False):
+    if not video_capture.isOpened():
         raise Exception(f"Could not open stream {stream}")
 
     # loop through the video frames
     #  Keep a counter for calculating how many frames to skip
     framecounter = 0
     raw_face_encodings = []
-    while(video_capture.isOpened()):
+    while (video_capture.isOpened()):
         # vid_capture.read() methods returns a tuple, first element is a bool
         # and the second is frame
         ret, frame = video_capture.read()
@@ -167,7 +171,9 @@ def process_stream(stream):
         # check if we should process this frame
         if framecounter % FRAME_SKIP == 0:
             # Resize frame of video to 1/4 size for faster face recognition processing
-            small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+            #  NOTE: skip this because the plugin will request the LOW resolution
+            # small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+            small_frame = frame
 
             # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
             rgb_small_frame = small_frame[:, :, ::-1]
