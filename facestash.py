@@ -1,11 +1,12 @@
-from api import app, api, db
+from api import app, db
 from ariadne import load_schema_from_path, make_executable_schema, \
     graphql_sync, snake_case_fallback_resolvers, ObjectType
 from ariadne.constants import PLAYGROUND_HTML
 from flask import request, jsonify
-from flask_restful import Resource, reqparse
-from api.queries import listPerformers_resolver, getPerformer_resolver
-from api.mutations import create_performer_resolver, update_performer_resolver, create_scene_resolver, update_scene_resolver
+from api.queries import listPerformers_resolver, getPerformer_resolver, \
+    getPerformersForScene_resolver
+from api.mutations import create_performer_resolver, update_performer_resolver, \
+    create_scene_resolver, update_scene_resolver
 import os
 
 # Configure the resolvers
@@ -13,8 +14,11 @@ query = ObjectType("Query")
 mutation = ObjectType("Mutation")
 query.set_field("listPerformers", listPerformers_resolver)
 query.set_field("getPerformer", getPerformer_resolver)
+query.set_field("getPerformersForScene", getPerformersForScene_resolver)
 mutation.set_field("createPerformer", create_performer_resolver)
 mutation.set_field("updatePerformer", update_performer_resolver)
+mutation.set_field("createScene", create_scene_resolver)
+mutation.set_field("updateScene", update_scene_resolver)
 
 
 # Load the graphql schema
@@ -49,18 +53,3 @@ def before_first_request():
     app.logger.warning(f"Setting logger level to {logger_level}")
     app.logger.setLevel(logger_level)
 
-
-# set up the REST services
-parser = reqparse.RequestParser()
-parser.add_argument('oshash')
-
-
-class RestScene(Resource):
-    def get(self, oshash):
-        # Wrap the GraphQL calls.
-        # Stash scrapers only support GET calls, so infer some context rather than use REST convention
-        app.logger.debug(f"Rest Call: {oshash}")
-        return update_scene_resolver({}, {})
-
-
-api.add_resource(RestScene, "/rest/scene/<checksum>")
